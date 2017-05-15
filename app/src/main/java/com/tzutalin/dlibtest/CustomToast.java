@@ -18,10 +18,11 @@ public class CustomToast {
     public static void showToast(Context mContext, String text, int duration) {
 
         mHandler.removeCallbacks(r);
-        if (mToast != null)
+        if (mToast != null ) {
             mToast.setText(text);
-        else
+        }else {
             mToast = Toast.makeText(mContext, text, Toast.LENGTH_SHORT);
+        }
         mHandler.postDelayed(r, duration);
 
         mToast.show();

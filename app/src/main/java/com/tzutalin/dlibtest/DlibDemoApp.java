@@ -19,16 +19,38 @@ package com.tzutalin.dlibtest;
 import android.app.Application;
 import android.util.Log;
 
+import com.tzutalin.dlib.Constants;
+import com.tzutalin.dlib.FaceDet;
 import timber.log.Timber;
 
 /**
  * Created by tzutalin on 2017/2/23.
  */
 public class DlibDemoApp extends Application {
+
+    private static DlibDemoApp instance;
+
+    public  static FaceDet mFaceDet;
+
+    public static DlibDemoApp getInstance(){
+        return instance;
+    }
+
+    public  void init(final OnFaceDetInitListener onFaceDetInitListener){
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                mFaceDet = new FaceDet(Constants.getFaceShapeModelPath());
+                onFaceDetInitListener.onSuccess();
+            }
+        }).start();
+
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
-
+        instance = this;
         if (BuildConfig.DEBUG) {
             Timber.plant(new Timber.DebugTree());
             //Timber.plant(new DebugLogFileTree(Environment.getExternalStorageDirectory().toString()));

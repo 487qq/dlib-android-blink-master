@@ -17,6 +17,8 @@
 package com.tzutalin.dlibtest;
 
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.os.Environment;
 import android.support.annotation.Keep;
 
@@ -54,10 +56,16 @@ public class ImageUtils {
      * @param bitmap The bitmap to save.
      */
     public static void saveBitmap(final Bitmap bitmap) {
+
+        final Matrix matrix = new Matrix();
+
+        matrix.setRotate(-90, bitmap.getWidth() / 2, bitmap.getHeight() / 2);
+
+        Bitmap outBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
         final String root =
                 Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "dlib";
 
-        SimpleDateFormat fmt=new SimpleDateFormat("yyyyMMddHHmmss");
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmss");
         String date = fmt.format(new Date(System.currentTimeMillis()));
         final String fileName = date + ".png";
 //        final String filePath = root + File.separator + fileName;
@@ -75,7 +83,7 @@ public class ImageUtils {
         }
         try {
             final FileOutputStream out = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 99, out);
+            outBitmap.compress(Bitmap.CompressFormat.PNG, 99, out);
             out.flush();
             out.close();
         } catch (final Exception e) {

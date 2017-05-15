@@ -64,6 +64,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import com.tzutalin.dlib.FaceDet;
 import hugo.weaving.DebugLog;
 import timber.log.Timber;
 
@@ -191,6 +192,11 @@ public class CameraConnectionFragment extends Fragment {
                 }
             };
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
     /**
      * An additional thread for running tasks that shouldn't block the UI.
      */
@@ -230,6 +236,8 @@ public class CameraConnectionFragment extends Fragment {
      * A {@link Semaphore} to prevent the app from exiting before closing the camera.
      */
     private final Semaphore cameraOpenCloseLock = new Semaphore(1);
+
+
 
     /**
      * Shows a {@link Toast} on the UI thread.
@@ -277,7 +285,7 @@ public class CameraConnectionFragment extends Fragment {
 
         // Pick the smallest of those, assuming we found any
         if (bigEnough.size() > 0) {
-            final Size chosenSize = Collections.max(bigEnough, new CompareSizesByArea());
+            final Size chosenSize = Collections.min(bigEnough, new CompareSizesByArea());
             Timber.tag(TAG).i("Chosen size: " + chosenSize.getWidth() + "x" + chosenSize.getHeight());
             return chosenSize;
         } else {
@@ -612,7 +620,6 @@ public class CameraConnectionFragment extends Fragment {
         }
         long pre2 = System.currentTimeMillis(); //TODO 改异步线程
         mOnGetPreviewListener.initialize(getActivity().getApplicationContext(), getActivity().getAssets(), mScoreView, inferenceHandler);
-
         long now2 =System.currentTimeMillis();
         Log.w("max","initialize time= " +( now2 -pre2));
 

@@ -32,6 +32,7 @@ import android.media.Image.Plane;
 import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.Handler;
+import android.os.Message;
 import android.os.Trace;
 import android.util.Log;
 import android.view.Display;
@@ -55,7 +56,8 @@ import java.util.List;
 public class OnGetImageListener implements OnImageAvailableListener {
     private static final boolean SAVE_PREVIEW_BITMAP = false;
 
-    private static final int INPUT_SIZE = 400;
+
+    private static final int INPUT_SIZE = 224;
     private static final String TAG = "OnGetImageListener";
 
     private int mScreenRotation = 90;
@@ -85,7 +87,7 @@ public class OnGetImageListener implements OnImageAvailableListener {
         this.mContext = context;
         this.mTransparentTitleView = scoreView;
         this.mInferenceHandler = handler;
-        mFaceDet = new FaceDet(Constants.getFaceShapeModelPath());
+        mFaceDet = DlibDemoApp.mFaceDet;
         mWindow = new FloatingCameraWindow(mContext);
 
         mFaceLandmardkPaint = new Paint();
@@ -94,11 +96,13 @@ public class OnGetImageListener implements OnImageAvailableListener {
         mFaceLandmardkPaint.setStyle(Paint.Style.STROKE);
     }
 
+
+
     public void deInitialize() {
         synchronized (OnGetImageListener.this) {
-            if (mFaceDet != null) {
-                mFaceDet.release();
-            }
+//            if (mFaceDet != null) {
+//                mFaceDet.release();
+//            }
 
             if (mWindow != null) {
                 mWindow.release();
@@ -224,6 +228,11 @@ public class OnGetImageListener implements OnImageAvailableListener {
                 new Runnable() {
                     @Override
                     public void run() {
+                        if (null == mFaceDet)
+                        {
+                            mIsComputing = false;
+                            return;
+                        }
                         if (!new File(Constants.getFaceShapeModelPath()).exists()) {
                             mTransparentTitleView.setText("Copying landmark model to " + Constants.getFaceShapeModelPath());
                             FileUtils.copyFileFromRawToOthers(mContext, R.raw.shape_predictor_68_face_landmarks, Constants.getFaceShapeModelPath());
@@ -246,7 +255,9 @@ public class OnGetImageListener implements OnImageAvailableListener {
                                 bounds.right = (int) (ret.getRight() * resizeRatio);
                                 bounds.bottom = (int) (ret.getBottom() * resizeRatio);
                                 Canvas canvas = new Canvas(mCroppedBitmap);
-                                canvas.drawRect(bounds, mFaceLandmardkPaint);
+                                if (isDrawRect) {
+                                    canvas.drawRect(bounds, mFaceLandmardkPaint);
+                                }
                                 Point[] rightEyes =new Point[6];
                                 Point[] leftEyes =new Point[6];
                                 // Draw landmark
@@ -255,7 +266,9 @@ public class OnGetImageListener implements OnImageAvailableListener {
                                     Point point = landmarks.get(i);
                                     int pointX = (int) (point.x * resizeRatio);
                                     int pointY = (int) (point.y * resizeRatio);
-                                    canvas.drawCircle(pointX, pointY, 2, mFaceLandmardkPaint);
+                                    if (isDrawPoint) {
+                                        canvas.drawCircle(pointX, pointY, 2, mFaceLandmardkPaint);
+                                    }
                                     //36 -41 left  42-47 right
                                     if (i>=36 && i<=41){
                                         rightEyes[i-36] = point;
@@ -269,9 +282,26 @@ public class OnGetImageListener implements OnImageAvailableListener {
                                 double rightEAR = BlinkUtils.eye_aspect_ratio(rightEyes);
                                 double ear = (leftEAR + rightEAR) / 2.0;
 
-//                              check to see if the eye aspect ratio is below the blink
-//		                        threshold, and if so, increment the blink frame counter
-                                Log.w("max","ear= " + BlinkUtils.convert(ear) );
+//                                if (preLeftEar !=0 && preRightEar !=0 ){   //平视手机屏幕
+//                                    Log.w("max","left: " + leftEAR + "   right: " + rightEAR );
+//                                    Log.w("max","pre left: " + preLeftEar + "   right: " + preRightEar );
+//                                    boolean isNowClose = leftEAR < BlinkUtils.EYE_AR_THRESH && rightEAR <BlinkUtils.EYE_AR_THRESH;
+//                                    boolean isPreOpen = preLeftEar >= BlinkUtils.EYE_AR_THRESH && preRightEar>=BlinkUtils.EYE_AR_THRESH;
+//                                    if (isNowClose && isPreOpen){
+//                                        total += 1;
+//                                        CustomToast.showToast(mContext,"blink:" + total,CustomToast.DURATION);
+//                                        if (isSave){
+//                                            saveImageHandler.sendEmptyMessageDelayed(SAVE_BITMAP,1000);
+//
+//                                        }
+//                                    }
+//
+//                                }
+//                                preLeftEar = leftEAR;
+//                                preRightEar = rightEAR;
+
+//
+//                                Log.w("max","ear= " + BlinkUtils.convert(ear) );
                                 if (ear < BlinkUtils.EYE_AR_THRESH){
                                     count +=1;
                                 }else{
@@ -280,16 +310,20 @@ public class OnGetImageListener implements OnImageAvailableListener {
                                     if (count >= BlinkUtils.EYE_AR_CONSEC_FRAMES) {
                                         total += 1;
                                         Log.w("max","blink....." + total);
-                                        ImageUtils.saveBitmap(mCroppedBitmap);
-                                        CustomToast.showToast(mContext,"blink:" + total,CustomToast.DURATION);
+//                                        ImageUtils.saveBitmap(mCroppedBitmap);
+//                                        CustomToast.showToast(mContext,"blink:" + total,CustomToast.DURATION);
+                                        if (isSave){
+                                            saveImageHandler.sendEmptyMessageDelayed(SAVE_BITMAP,0);
+                                        }
                                     }
                                     count =0;
                                 }
 
                             }
                         }
-
-//                        mWindow.setRGBBitmap(mCroppedBitmap);
+                        if (isShowFloatWindow) {
+                            mWindow.setRGBBitmap(mCroppedBitmap);
+                        }
                         mIsComputing = false;
                     }
                 });
@@ -299,5 +333,25 @@ public class OnGetImageListener implements OnImageAvailableListener {
 
     private int count = 0;
     private int total = 0;
-    private double preEar;
+
+
+    private double preLeftEar;
+    private double preRightEar;
+
+    private static final boolean isSave = true;
+    private static final boolean isDrawRect = false;
+    private static final boolean isDrawPoint = false;
+    private static final boolean isShowFloatWindow = false;
+
+    private static final int SAVE_BITMAP = 0x101;
+    private  Handler saveImageHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == SAVE_BITMAP) {
+                ImageUtils.saveBitmap(mRGBframeBitmap);
+                saveImageHandler.removeMessages(SAVE_BITMAP);
+            }
+        }
+    };
 }

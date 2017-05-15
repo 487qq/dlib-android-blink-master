@@ -3,8 +3,11 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/dlib/dlib.iml" filepath="$PROJECT_DIR$/dlib/dlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/dlib/dlib.iml" filepath="$PROJECT_DIR$/dlib/dlib.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dlib-android-app-master.iml" filepath="$PROJECT_DIR$/.idea/modules/dlib-android-app-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/dlib-android-blink-master.iml" filepath="$PROJECT_DIR$/dlib-android-blink-master.iml" />
     </modules>
   </component>
 </project>

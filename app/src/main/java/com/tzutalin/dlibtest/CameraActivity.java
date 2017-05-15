@@ -37,7 +37,7 @@ public class CameraActivity extends Activity {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-        setContentView(R.layout.activity_camera);
+        setContentView(R.layout.activity_camera2);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(this.getApplicationContext())) {
@@ -52,6 +52,12 @@ public class CameraActivity extends Activity {
                     .replace(R.id.container, CameraConnectionFragment.newInstance())
                     .commit();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
     }
 
     @Override
