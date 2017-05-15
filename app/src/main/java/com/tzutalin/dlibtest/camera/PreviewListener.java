@@ -9,10 +9,7 @@ import android.util.Log;
 import com.tzutalin.dlib.Constants;
 import com.tzutalin.dlib.FaceDet;
 import com.tzutalin.dlib.VisionDetRet;
-import com.tzutalin.dlibtest.BlinkUtils;
-import com.tzutalin.dlibtest.DlibDemoApp;
-import com.tzutalin.dlibtest.FloatingCameraWindow;
-import com.tzutalin.dlibtest.ImageUtils;
+import com.tzutalin.dlibtest.*;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -27,7 +24,7 @@ public class PreviewListener implements Camera.PreviewCallback {
     private boolean mIsComputing = false;
     private Bitmap mFrameBitmap;
 
-    public PreviewListener(Context context,Handler inferenceHandler) {
+    public PreviewListener(Context context, Handler inferenceHandler) {
         this.mInferenceHandler = inferenceHandler;
         mFaceDet = DlibDemoApp.mFaceDet;
 
@@ -42,9 +39,9 @@ public class PreviewListener implements Camera.PreviewCallback {
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         Camera.Size size = camera.getParameters().getPreviewSize();
-        try{
+        try {
             YuvImage image = new YuvImage(data, ImageFormat.NV21, size.width, size.height, null);
-            if(image!=null){
+            if (image != null) {
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 image.compressToJpeg(new Rect(0, 0, size.width, size.height), 80, stream);
 
@@ -66,13 +63,13 @@ public class PreviewListener implements Camera.PreviewCallback {
                 detect();
                 stream.close();
             }
-        }catch(Exception ex){
-            Log.e("Sys","Error:"+ex.getMessage());
+        } catch (Exception ex) {
+            Log.e("Sys", "Error:" + ex.getMessage());
         }
     }
 
 
-    private void detect(){
+    private void detect() {
         mInferenceHandler.post(
                 new Runnable() {
                     @Override
@@ -84,7 +81,8 @@ public class PreviewListener implements Camera.PreviewCallback {
                             results = mFaceDet.detect(mFrameBitmap);
                         }
                         long endTime = System.currentTimeMillis();
-                        Log.d("previewListener","Time cost: " + String.valueOf((endTime - startTime) / 1000f) + " sec");
+                        Log.d("previewListener", "Time cost: " + String.valueOf((endTime - startTime) / 1000f) + " " +
+                                "sec");
                         // Draw on bitmap
                         if (results != null) {
                             for (final VisionDetRet ret : results) {
@@ -98,11 +96,11 @@ public class PreviewListener implements Camera.PreviewCallback {
                                 if (isDrawRect) {
                                     canvas.drawRect(bounds, mFaceLandmardkPaint);
                                 }
-                                Point[] rightEyes =new Point[6];
-                                Point[] leftEyes =new Point[6];
+                                Point[] rightEyes = new Point[6];
+                                Point[] leftEyes = new Point[6];
                                 // Draw landmark
                                 ArrayList<Point> landmarks = ret.getFaceLandmarks();
-                                for (int i =0; i< landmarks.size() ;i++) {
+                                for (int i = 0; i < landmarks.size(); i++) {
                                     Point point = landmarks.get(i);
                                     int pointX = (int) (point.x * resizeRatio);
                                     int pointY = (int) (point.y * resizeRatio);
@@ -110,40 +108,42 @@ public class PreviewListener implements Camera.PreviewCallback {
                                         canvas.drawCircle(pointX, pointY, 2, mFaceLandmardkPaint);
                                     }
                                     //36 -41 left  42-47 right
-                                    if (i>=36 && i<=41){
-                                        rightEyes[i-36] = point;
+                                    if (i >= 36 && i <= 41) {
+                                        rightEyes[i - 36] = point;
                                     }
 
-                                    if (i>=42 && i<=47){
-                                        leftEyes[i-42] = point;
+                                    if (i >= 42 && i <= 47) {
+                                        leftEyes[i - 42] = point;
                                     }
                                 }
 
                                 double leftEAR = BlinkUtils.eye_aspect_ratio(leftEyes);
                                 double rightEAR = BlinkUtils.eye_aspect_ratio(rightEyes);
                                 double ear = (leftEAR + rightEAR) / 2.0;
-                                Log.w("max","ear= " + BlinkUtils.convert(ear) );
-                                if (ear < BlinkUtils.EYE_AR_THRESH){
-                                    count +=1;
-                                }else{
+                                Log.w("max", "ear= " + BlinkUtils.convert(ear));
+                                if (ear < BlinkUtils.EYE_AR_THRESH) {
+                                    count += 1;
+                                } else {
 //                                    if the eyes were closed for a sufficient number of
 //			                            then increment the total number of blinks
                                     if (count >= BlinkUtils.EYE_AR_CONSEC_FRAMES) {
                                         total += 1;
-                                        Log.w("max","blink....." + total);
+                                        Log.w("max", "blink....." + total);
 //                                        ImageUtils.saveBitmap(mCroppedBitmap);
 //                                        CustomToast.showToast(mContext,"blink:" + total,CustomToast.DURATION);
-                                        if (isSave){
-                                            ImageUtils.saveBitmap(mFrameBitmap);
+                                        if (isSave) {
+                                            CameraInterface.getInstance().doTakePicture();
 //                                            saveImageHandler.sendEmptyMessageDelayed(SAVE_BITMAP,0);
                                         }
                                     }
-                                    count =0;
+                                    count = 0;
                                 }
                             }
                         }
-                        if(isShowFloatWindow) {
-                            mWindow.setRGBBitmap(mFrameBitmap);
+                        if (isShowFloatWindow) {
+                            if (null != mFrameBitmap && mWindow != null) {
+                                mWindow.setRGBBitmap(mFrameBitmap);
+                            }
                         }
 //                        FileUtil.saveBitmap(bitmap);
                         mIsComputing = false;
@@ -152,18 +152,19 @@ public class PreviewListener implements Camera.PreviewCallback {
                 });
     }
 
-    public void onPause(){
-        if (null != mWindow){
+    public void onPause() {
+        if (null != mWindow) {
             mWindow.release();
             mWindow = null;
         }
     }
+
     private int count = 0;
     private int total = 0;
 
     private static final boolean isSave = true;
-    private static final boolean isDrawRect = false;
-    private static final boolean isDrawPoint = false;
+    private static final boolean isDrawRect = true;
+    private static final boolean isDrawPoint = true;
     private static final boolean isShowFloatWindow = true;
 
     private static final int SAVE_BITMAP = 0x101;

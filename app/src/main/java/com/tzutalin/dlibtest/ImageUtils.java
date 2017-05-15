@@ -57,11 +57,11 @@ public class ImageUtils {
      */
     public static void saveBitmap(final Bitmap bitmap) {
 
-        final Matrix matrix = new Matrix();
-
-        matrix.setRotate(-90, bitmap.getWidth() / 2, bitmap.getHeight() / 2);
-
-        Bitmap outBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+//        final Matrix matrix = new Matrix();
+//
+//        matrix.setRotate(-90, bitmap.getWidth() / 2, bitmap.getHeight() / 2);
+//
+//        Bitmap outBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
         final String root =
                 Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "dlib";
 
@@ -83,7 +83,7 @@ public class ImageUtils {
         }
         try {
             final FileOutputStream out = new FileOutputStream(file);
-            outBitmap.compress(Bitmap.CompressFormat.PNG, 99, out);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 99, out);
             out.flush();
             out.close();
         } catch (final Exception e) {

@@ -32,14 +32,7 @@ public class CameraActivity extends Activity implements CameraInterface.CamOpenO
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         initBackgroudThread();
-        Thread openThread = new Thread(){
-            @Override
-            public void run() {
-                // TODO Auto-generated method stub
-                CameraInterface.getInstance().doOpenCamera(CameraActivity.this,inferenceHandler,CameraActivity.this);
-            }
-        };
-        openThread.start();
+//        openCamera();
         setContentView(R.layout.activity_camera);
         initUI();
         initViewParams();
@@ -57,6 +50,7 @@ public class CameraActivity extends Activity implements CameraInterface.CamOpenO
 
     private void initUI(){
         surfaceView = (CameraSurfaceView)findViewById(R.id.camera_surfaceview);
+        surfaceView.setParams(this,inferenceHandler);
         shutterBtn = (Button)findViewById(R.id.btn_shutter);
     }
     private void initViewParams(){

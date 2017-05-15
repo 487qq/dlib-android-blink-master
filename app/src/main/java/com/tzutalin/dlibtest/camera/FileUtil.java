@@ -8,6 +8,8 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class FileUtil {
     private static final  String TAG = "FileUtil";
@@ -35,8 +37,10 @@ public class FileUtil {
     public static void saveBitmap(Bitmap b){
 
         String path = initPath();
-        long dataTake = System.currentTimeMillis();
-        String jpegName = path + "/" + dataTake +".jpg";
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyyMMddHHmmss");
+        String date = fmt.format(new Date(System.currentTimeMillis()));
+        final String fileName = date + ".png";
+        String jpegName = path + File.separator + fileName;
         Log.i(TAG, "saveBitmap:jpegName = " + jpegName);
         try {
             FileOutputStream fout = new FileOutputStream(jpegName);
